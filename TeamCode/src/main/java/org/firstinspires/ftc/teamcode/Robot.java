@@ -9,7 +9,7 @@ import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 public class Robot extends LinearOpMode {
 
     @Override
-    public void runOpMode () throws InterruptedException {
+    public void runOpMode () {
 
     }
 }
