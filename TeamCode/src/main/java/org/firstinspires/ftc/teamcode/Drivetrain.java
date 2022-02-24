@@ -50,8 +50,19 @@ public class Drivetrain {
     double prevRightPos;
     double prevHorizontalPos;
 
+    double lastFLPos;
+    double lastFRPos;
+    double lastBLPos;
+    double lastBRPos;
+
+    final double xConst = 1000;
+    final double yConst = 1000;
+    final double rConst = 9.4;
+
     final double trackWidth = 10;
     final double forwardOffset = 10;
+
+    final boolean useOdo = false;
 
     private final ElapsedTime runtime = new ElapsedTime();
 
@@ -215,17 +226,50 @@ public class Drivetrain {
 
     public void getPosition() {
 
-        double currentLeftPos = left.getCurrentPosition();
-        double currentRightPos = right.getCurrentPosition();
-        double currentHorizontalPos = horizontal.getCurrentPosition();
+        double phi, dYRobot, dXRobot;
 
-        double dLeft = currentLeftPos - prevLeftPos;
-        double dRight = currentRightPos - prevRightPos;
-        double dHorizontal = currentHorizontalPos - prevHorizontalPos;
+        if(useOdo) {
 
-        double phi = (dLeft - dRight) / trackWidth;
-        double dYRobot = (dLeft + dRight) / 2;
-        double dXRobot = dHorizontal - forwardOffset * phi;
+            double currentLeftPos = left.getCurrentPosition();
+            double currentRightPos = right.getCurrentPosition();
+            double currentHorizontalPos = horizontal.getCurrentPosition();
+
+            double dLeft = currentLeftPos - prevLeftPos;
+            double dRight = currentRightPos - prevRightPos;
+            double dHorizontal = currentHorizontalPos - prevHorizontalPos;
+
+            phi = (dLeft - dRight) / trackWidth;
+            dYRobot = (dLeft + dRight) / 2;
+            dXRobot = dHorizontal - forwardOffset * phi;
+
+            prevHorizontalPos = currentHorizontalPos;
+            prevLeftPos = currentLeftPos;
+            prevRightPos = currentRightPos;
+
+        }
+
+        else {
+
+            double currentFLPos = fl.getCurrentPosition();
+            double currentFRPos = fr.getCurrentPosition();
+            double currentBLPos = bl.getCurrentPosition();
+            double currentBRPos = br.getCurrentPosition();
+
+            double dFLPos = currentFLPos - lastFLPos;
+            double dFRPos = currentFRPos - lastFRPos;
+            double dBLPos = currentBLPos - lastBLPos;
+            double dBRPos = currentBRPos - lastBRPos;
+
+            dXRobot = (((dFLPos + dBRPos) - (dFRPos + dBLPos)) / 4) / xConst;
+            dYRobot = ((dFLPos + dFRPos + dBLPos + dBRPos) / 4) / yConst;
+            phi = (((dBLPos + dFLPos) - (dFRPos + dBRPos)) / 4) / rConst;
+
+            lastFLPos = currentFLPos;
+            lastFRPos = currentFRPos;
+            lastBLPos = currentBLPos;
+            lastBRPos = currentBRPos;
+
+        }
 
         double dXField = dXRobot * Math.cos(rPosition) - dYRobot * Math.sin(rPosition);
         double dYField = dXRobot * Math.sin(rPosition) + dYRobot * Math.cos(rPosition);
@@ -233,10 +277,6 @@ public class Drivetrain {
         xPosition += dXField;
         yPosition += dYField;
         rPosition += phi;
-
-        prevHorizontalPos = currentHorizontalPos;
-        prevLeftPos = currentLeftPos;
-        prevRightPos = currentRightPos;
 
         position[0] = xPosition;
         position[1] = yPosition;
