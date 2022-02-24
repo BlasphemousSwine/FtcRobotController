@@ -11,6 +11,7 @@ public class TestOpMode extends LinearOpMode{
 
         Drivetrain drivetrain = new Drivetrain(hardwareMap);
         drivetrain.update();
+        drivetrain.setUseOdo(true);
 
     }
 

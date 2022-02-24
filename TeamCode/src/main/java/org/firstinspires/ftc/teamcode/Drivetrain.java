@@ -62,7 +62,7 @@ public class Drivetrain {
     final double trackWidth = 10;
     final double forwardOffset = 10;
 
-    final boolean useOdo = false;
+    boolean useOdo = false;
 
     private final ElapsedTime runtime = new ElapsedTime();
 
@@ -281,6 +281,12 @@ public class Drivetrain {
         position[0] = xPosition;
         position[1] = yPosition;
         position[2] = rPosition;
+
+    }
+
+    public void setUseOdo(boolean setUseOdo) {
+
+        useOdo = setUseOdo;
 
     }
 
