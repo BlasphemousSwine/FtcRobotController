@@ -82,7 +82,7 @@ public class Drivetrain {
         getPosition();
 
         double xVel = xPosPID(setPosition[0]) + setVelocity[0];
-        double yVel = yPosPID(setPosition[1]) + setVelocity[1];
+        double yVel = yPosPID(Double.NaN) + setVelocity[1];
         double rPower = rPosPID(setPosition[2]) + setVelocity[2];
 
         double yPower = yVel * Math.cos(position[2]) - xVel * Math.sin(position[2]);
@@ -121,17 +121,27 @@ public class Drivetrain {
 
     private double yPosPID(double setX) {
 
-        double now = runtime.milliseconds();
-        double timeChange = now - yLastTime;
+        double Output;
 
-        double error = position[1] - setX;
-        yErrSum += (error * timeChange);
-        double dErr = (error - yLastErr) / timeChange;
+        if(setX == Double.NaN) {
+            Output = Double.NaN;
+        }
 
-        double Output = ykp * error + yki * yErrSum + ykd *dErr;
+        else {
 
-        yLastErr = error;
-        yLastTime = now;
+            double now = runtime.milliseconds();
+            double timeChange = now - yLastTime;
+
+            double error = position[1] - setX;
+            yErrSum += (error * timeChange);
+            double dErr = (error - yLastErr) / timeChange;
+
+            Output = ykp * error + yki * yErrSum + ykd * dErr;
+
+            yLastErr = error;
+            yLastTime = now;
+
+        }
 
         return Output;
 
