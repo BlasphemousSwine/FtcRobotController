@@ -80,28 +80,82 @@ public class Drivetrain {
     public void update() {
 
         getPosition();
+        setPower();
 
-        double xVel = xPosPID(setPosition[0]) + setVelocity[0];
-        double yVel = yPosPID(Double.NaN) + setVelocity[1];
-        double rPower = rPosPID(setPosition[2]) + setVelocity[2];
+    }
 
-        double yPower = yVel * Math.cos(position[2]) - xVel * Math.sin(position[2]);
-        double xPower = yVel * Math.sin(position[2]) + xVel * Math.cos(position[2]);
+    private void setPower() {
 
-        double scale = Math.max(Math.abs(yPower) + Math.abs(xPower) + Math.abs(rPower), 1);
-        double flPower = (yPower + xPower + rPower) / scale;
-        double blPower = (yPower - xPower + rPower) / scale;
-        double frPower = (yPower - xPower - rPower) / scale;
-        double brPower = (yPower + xPower - rPower) / scale;
+        double[] powerCalc = powerCalc();
 
-        fl.setPower(flPower);
-        bl.setPower(blPower);
-        fr.setPower(frPower);
-        br.setPower(brPower);
+        fl.setPower(powerCalc[3]);
+        bl.setPower(powerCalc[0]);
+        fr.setPower(powerCalc[1]);
+        br.setPower(powerCalc[2]);
+
+    }
+
+    private double[] powerCalc() {
+
+        double[] velCalc = velCalc();
+
+        double yPower = velCalc[1] * Math.cos(position[2]) - velCalc[0] * Math.sin(position[2]);
+        double xPower = velCalc[1] * Math.sin(position[2]) + velCalc[0] * Math.cos(position[2]);
+
+        double scale = Math.max(Math.abs(yPower) + Math.abs(xPower) + Math.abs(velCalc[2]), 1);
+        double blPower = (yPower - xPower + velCalc[2]) / scale;
+        double frPower = (yPower - xPower - velCalc[2]) / scale;
+        double brPower = (yPower + xPower - velCalc[2]) / scale;
+        double flPower = (yPower + xPower + velCalc[2]) / scale;
+
+        double[] powerCalc = new double[4];
+
+        powerCalc[0] = blPower;
+        powerCalc[1] = frPower;
+        powerCalc[2] = brPower;
+        powerCalc[3] = flPower;
+
+        return powerCalc;
+
+    }
+
+    private double[] velCalc()
+
+    {
+
+        double xVel, yVel, rPower;
+
+        if (Double.isNaN(xPosPID(setPosition[0]))) {
+            xVel = setVelocity[0];
+        } else {
+            xVel = xPosPID(setPosition[0]) + setVelocity[0];
+        }
+
+        if (Double.isNaN(yPosPID(setPosition[1]))) {
+            yVel = setVelocity[1];
+        } else {
+            yVel = yPosPID(setPosition[1]) + setVelocity[1];
+
+        }
+        if (Double.isNaN(rPosPID(setPosition[2]))) {
+            rPower = setVelocity[2];
+        } else {
+            rPower = rPosPID(setPosition[2]) + setVelocity[2];
+        }
+
+        double[] velCalc = new double[3];
+
+        velCalc[0] = xVel;
+        velCalc[1] = yVel;
+        velCalc[2] = rPower;
+
+        return velCalc;
 
     }
 
     private double xPosPID(double setX) {
+
+        double Output;
 
         double now = runtime.milliseconds();
         double timeChange = now - xLastTime;
@@ -110,7 +164,7 @@ public class Drivetrain {
         xErrSum += (error * timeChange);
         double dErr = (error - xLastErr) / timeChange;
 
-        double Output = xkp * error + xki * xErrSum + xkd *dErr;
+        Output = xkp * error + xki * xErrSum + xkd * dErr;
 
         xLastErr = error;
         xLastTime = now;
@@ -119,44 +173,38 @@ public class Drivetrain {
 
     }
 
-    private double yPosPID(double setX) {
+    private double yPosPID(double setY) {
 
         double Output;
 
-        if(setX == Double.NaN) {
-            Output = Double.NaN;
-        }
+        double now = runtime.milliseconds();
+        double timeChange = now - yLastTime;
 
-        else {
+        double error = position[1] - setY;
+        yErrSum += (error * timeChange);
+        double dErr = (error - yLastErr) / timeChange;
 
-            double now = runtime.milliseconds();
-            double timeChange = now - yLastTime;
+        Output = ykp * error + yki * yErrSum + ykd * dErr;
 
-            double error = position[1] - setX;
-            yErrSum += (error * timeChange);
-            double dErr = (error - yLastErr) / timeChange;
-
-            Output = ykp * error + yki * yErrSum + ykd * dErr;
-
-            yLastErr = error;
-            yLastTime = now;
-
-        }
+        yLastErr = error;
+        yLastTime = now;
 
         return Output;
 
     }
 
-    private double rPosPID(double setX) {
+    private double rPosPID(double setR) {
+
+        double Output;
 
         double now = runtime.milliseconds();
         double timeChange = now - rLastTime;
 
-        double error = position[2] - setX;
+        double error = position[2] - setR;
         rErrSum += (error * timeChange);
         double dErr = (error - rLastErr) / timeChange;
 
-        double Output = rkp * error + rki * rErrSum + rkd *dErr;
+        Output = rkp * error + rki * rErrSum + rkd * dErr;
 
         rLastErr = error;
         rLastTime = now;
