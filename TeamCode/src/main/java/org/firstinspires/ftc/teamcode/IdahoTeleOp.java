@@ -4,8 +4,8 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
-@TeleOp(name = "TestOp")
-public class TestOpMode extends LinearOpMode{
+@TeleOp(name = "IdahoTeleOp")
+public class IdahoTeleOp extends LinearOpMode{
 
     @Override
     public void runOpMode() {
@@ -29,6 +29,11 @@ public class TestOpMode extends LinearOpMode{
         drivetrain.setPosition[0] = Double.NaN;
         drivetrain.setPosition[1] = Double.NaN;
         drivetrain.setPosition[2] = Double.NaN;
+
+        int up = 0;
+        int duckSide = 1;
+
+        lift.retract();
 
         waitForStart();
 
@@ -59,34 +64,76 @@ public class TestOpMode extends LinearOpMode{
 //                    drivetrain.setPosition[2] = Double.NaN;
 //                }
 
-                if(gamepad1.x) {
-                    lift.drop();
-                }
-
-                if(gamepad1.y) {
-//                    lift.raise();
-                }
-
-                if(gamepad1.right_bumper) {
-                    lift.extend();
-                }
-
-                if(gamepad1.left_bumper) {
-                    lift.retract();
-                }
-
-                if(gamepad1.a) {
-                    lift.dump();
-                }
-                else {
-                    lift.unDump();
-                }
-
                 drivetrain.setVelocity[0] = - gamepad1.left_stick_x;
                 drivetrain.setVelocity[1] = - gamepad1.left_stick_y;
                 drivetrain.setVelocity[2] = gamepad1.right_stick_x;
 
                 drivetrain.update();
+
+                if (gamepad2.a) {
+                    lift.intake();
+                    if(gamepad2.right_bumper) {
+                        lift.backwards();
+                    }
+                }
+                else if (!gamepad2.dpad_down && !gamepad2.dpad_up){
+                    lift.drop();
+                }
+
+                if(gamepad2.b) {
+                    lift.extend();
+                    up = 1;
+                }
+
+                if(gamepad2.y) {
+                    lift.dump();
+                }
+                else if(up == 1){
+                    lift.unDump();
+                }
+
+                if(gamepad2.x) {
+                    lift.retract();
+                    up = 0;
+                }
+
+                if(gamepad1.start) {
+
+                    drivetrain.initializeIMU();
+
+                }
+
+                if(gamepad2.right_bumper) {
+                    duckSide = -1;
+                    lift.DucksStart();
+                }
+
+                if(gamepad2.left_bumper) {
+                    duckSide = 1;
+                    lift.DucksStart();
+                }
+
+                lift.DucksUpdate(duckSide);
+
+                if(gamepad2.dpad_down) {
+                    lift.capDown();
+                }
+
+                if(gamepad2.dpad_up) {
+                    lift.capUp();
+                }
+
+                if(gamepad1.dpad_right) {
+                    lift.extendShared();
+                }
+
+//
+//                if(gamepad2.left_bumper) {
+//                    lift.blueDucks();
+//                }
+//                else if(gamepad2.right_bumper) {
+//                    lift.redDucks();
+//                }
 
                 telemetry.addData("Angle", drivetrain.position[2]);
                 telemetry.addData("Y", drivetrain.position[1]);
